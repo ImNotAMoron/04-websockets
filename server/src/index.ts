@@ -1,5 +1,3 @@
-import { WebSocketServer } from 'ws';
-import {GameServer} from "./modules/game/game.server";
 import {QuizServer} from "./modules/server/server";
 import {Game} from "./modules/game/game";
 

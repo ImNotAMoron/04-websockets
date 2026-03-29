@@ -33,7 +33,7 @@ export class Game {
     }
 
     constructor() {
-        this.context = new GameContext(new GameLogger(true));
+        this.context = new GameContext(new GameLogger(false));
         this.handlers = new GameHandlers(this.context);
         // setInterval(() => {
         //     if (this.context.playerEventCallback) {

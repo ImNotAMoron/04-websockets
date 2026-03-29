@@ -35,7 +35,6 @@ export class QuizServer {
             })
         })
         this.game.onPlayerEvent(((player, event) => {
-            console.log(player.id, event.type)
             const playerWs = this.players.get(player.id);
             if(!playerWs) return;
             playerWs.send(JSON.stringify(event));

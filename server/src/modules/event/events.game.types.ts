@@ -52,7 +52,7 @@ export type GameEventQuestion = {
         "questionNumber": number,
         "totalQuestions": number,
         "text": string,
-        "options": [string, string, string, string],
+        "options": string[],
         "timeLimitSec": number
     },
     "id": 0
@@ -86,13 +86,13 @@ export type GameEventQuestionResult = {
 export type GameEventGameFinished = {
     "type": "game_finished",
     "data": {
-        "scoreboard": [
+        "scoreboard":
             {
                 "name": string,
                 "score": number,
                 "rank": number
-            }
-        ]
+            }[]
+
     },
     "id": 0
 }

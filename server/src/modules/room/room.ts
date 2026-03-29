@@ -2,7 +2,8 @@ import {Question} from "../../types";
 import {RoomQuestion} from "./room.question";
 import {GamePlayer} from "../game/game.player";
 import {generateRandomCode} from "../../utils/generate-random-code";
-import {GameEventQuestionResult} from "../event/events.game.types";
+import {GameEventGameFinished, GameEventQuestionResult} from "../event/events.game.types";
+import {clearTimeout} from "node:timers";
 
 const BASE_SCORES = 1000;
 
@@ -17,10 +18,10 @@ export class Room {
     questionStartTime?: number;
     questionTimer?: NodeJS.Timeout;
     playerAnswers: Map<string, { answerIndex: number; timestamp: number }> = new Map();
-    scores: Map<string, number> = new Map();
     questionCallback: ((question: RoomQuestion) => void) | undefined = undefined;
-    endGameCallback: (() => void) | undefined;
+    endGameCallback: ((scoreboard: GameEventGameFinished["data"]["scoreboard"]) => void) | undefined;
     questionResultsCallback: ((data: GameEventQuestionResult["data"]) => void) | undefined;
+    currentAnswerCount = 0;
 
     constructor(questions: RoomQuestion[], hostId: string) {
         this.hostId = hostId;
@@ -31,14 +32,25 @@ export class Room {
 
     startGame() {
         this.status = "in_progress";
+        for(const player of this.players) {
+            player.score = 0;
+        }
         this.nextQuestion();
     }
 
     answer(id: string, index: number) {
+        console.log(id, "answered")
         this.playerAnswers.set(id, {
             answerIndex: index,
             timestamp: Date.now()
         });
+        this.currentAnswerCount++;
+        console.log(`${this.currentAnswerCount} / ${this.players.length}`)
+        if(this.currentAnswerCount >= this.players.length) {
+            console.log("Finishing")
+            this.finishQuestion();
+
+        }
     }
 
 
@@ -49,40 +61,56 @@ export class Room {
             const answered = Boolean(this.questionStartTime && pair[1].timestamp > this.questionStartTime);
             const question = this.questions[this.currentQuestion];
             const correct = Boolean(answered && pair[1].answerIndex === question.correctIndex);
-            const pointsEarned = Math.max(0, +correct * (BASE_SCORES - (question.timeLimitSec - Date.now() + this.questionStartTime!) / (question.timeLimitSec * 1000) * BASE_SCORES))
-            // basescore - ((d.n - qs)/tl) * baseScro
-            // ti
+            const elapsed = pair[1].timestamp - this.questionStartTime!;
+            const pointsEarned = Math.round(Math.max(0, +correct * (BASE_SCORES - elapsed / (question.timeLimitSec * 1000) * BASE_SCORES)))
+            player.score = player.score + pointsEarned;
             return {
                 name: player.name,
                 "answered": answered,
                 "correct": answered && pair[1].answerIndex === question.correctIndex,
                 "pointsEarned": pointsEarned,
-                "totalScore": player.score + pointsEarned
+                "totalScore":  player.score
             }
         })
     }
 
+    finishQuestion() {
+        clearTimeout(this.questionTimer);
+        const question = this.questions[this.currentQuestion];
+        if(!this.questionResultsCallback) throw "Question results callback is undefined";
+        const results = this.calculateResults();
+        this.questionResultsCallback({
+            questionIndex: this.currentQuestion,
+            correctIndex: question.correctIndex,
+            playerResults: results
+        });
+        setTimeout(() => {this.nextQuestion()}, 1000 * 10);
+    }
+
     nextQuestion() {
         this.currentQuestion++;
+        this.currentAnswerCount = 0;
         this.questionStartTime = Date.now();
         this.playerAnswers.clear();
         if(this.currentQuestion >= this.questions.length) {
             if(!this.endGameCallback) throw "End game callback is undefined";
-            this.endGameCallback();
+            const results = this.players.map(el =>  ({
+                name: el.name,
+                score: el.score
+            }));
+            results.sort((a, b) => b.score - a.score);
+            this.status = "finished";
+            this.endGameCallback(results.map((el, index) => ({
+                ...el,
+                rank: index + 1
+            })));
             return;
         }
         const question = this.questions[this.currentQuestion];
         if(!this.questionCallback) throw "Question callback is undefined";
         this.questionCallback(question);
-        setTimeout(() => {
-            if(!this.questionResultsCallback) throw "Question results callback is undefined";
-            const results = this.calculateResults();
-            this.questionResultsCallback({
-                questionIndex: this.currentQuestion,
-                correctIndex: question.correctIndex,
-                playerResults: results
-            });
-            this.nextQuestion()
-        }, question.timeLimitSec);
+        this.questionTimer = setTimeout(() => {
+            this.finishQuestion()
+        }, question.timeLimitSec * 1000);
     }
 }

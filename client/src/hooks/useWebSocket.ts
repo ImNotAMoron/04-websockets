@@ -30,7 +30,6 @@ export const useWebSocket = (url: string) => {
         if (cancelled) return;
         try {
           const message = JSON.parse(event.data) as WSMessage;
-          console.log('Received message:', message);
           setLastMessage(message);
         } catch (error) {
           console.error('Failed to parse message:', error);
@@ -44,7 +43,6 @@ export const useWebSocket = (url: string) => {
 
       socket.onclose = () => {
         if (cancelled) return;
-        console.log('WebSocket disconnected');
         setIsConnected(false);
 
         if (reconnectAttempts.current < MAX_RECONNECT_ATTEMPTS) {
