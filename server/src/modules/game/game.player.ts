@@ -10,7 +10,8 @@ export class GamePlayer {
 
 export class PlayersManager {
     private players: Map<string, GamePlayer>;
-    private credentialToId: Map<string, string>
+    private credentialToId: Map<string, string>;
+    private nameToId: Map<string, string>;
 
     keyFromCredentials(name: string, password: string) {
         return `${name}\0${password}`;
@@ -19,6 +20,7 @@ export class PlayersManager {
     constructor() {
         this.players = new Map();
         this.credentialToId = new Map();
+        this.nameToId = new Map();
     }
 
     getPlayer(id: string) {
@@ -32,15 +34,18 @@ export class PlayersManager {
         return this.players.get(id);
     }
 
-    authPlayer(name: string, password: string) {
-        let player = this.getPlayerByCredentials(name, password);
-        if (player) return player;
-        else {
-            const newPlayer = new GamePlayer(name);
-            this.players.set(newPlayer.id, newPlayer);
-            this.credentialToId.set(this.keyFromCredentials(name, password), newPlayer.id);
-            return newPlayer;
+    authPlayer(name: string, password: string): GamePlayer {
+        const existingId = this.nameToId.get(name);
+        if (existingId) {
+            const player = this.getPlayerByCredentials(name, password);
+            if (!player) throw new Error("Wrong password");
+            return player;
         }
+        const newPlayer = new GamePlayer(name);
+        this.players.set(newPlayer.id, newPlayer);
+        this.nameToId.set(name, newPlayer.id);
+        this.credentialToId.set(this.keyFromCredentials(name, password), newPlayer.id);
+        return newPlayer;
     }
 
     getAllPlayers() {

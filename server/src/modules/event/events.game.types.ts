@@ -3,7 +3,7 @@ export type GameEventReg = {
     "data": {
         "name": string,
         "index": string,
-        "error": false,
+        "error": boolean,
         "errorText": string
     },
     id: number,

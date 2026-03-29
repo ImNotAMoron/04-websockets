@@ -46,10 +46,8 @@ export class Room {
         });
         this.currentAnswerCount++;
         console.log(`${this.currentAnswerCount} / ${this.players.length}`)
-        if(this.currentAnswerCount >= this.players.length) {
-            console.log("Finishing")
+        if(this.currentAnswerCount >= this.players.length && this.questionTimer !== undefined) {
             this.finishQuestion();
-
         }
     }
 
@@ -76,6 +74,7 @@ export class Room {
 
     finishQuestion() {
         clearTimeout(this.questionTimer);
+        this.questionTimer = undefined;
         const question = this.questions[this.currentQuestion];
         if(!this.questionResultsCallback) throw "Question results callback is undefined";
         const results = this.calculateResults();

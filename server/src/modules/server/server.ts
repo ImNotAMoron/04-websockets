@@ -26,7 +26,7 @@ export class QuizServer {
                         ws.send(JSON.stringify(event));
                     }
                     else {
-
+                        ws.send(JSON.stringify(event));
                     }
                 }
                 else if(playerId !== undefined) {

@@ -11,8 +11,9 @@ export class Game {
     private handlers: GameHandlers;
 
     registerPlayer(name: string, password: string): GameEventReg {
-        const player = this.context.playersManager.authPlayer(name, password);
-        return {
+        try {
+            const player = this.context.playersManager.authPlayer(name, password);
+            return {
                 type: "reg",
                 data: {
                     name: player.name,
@@ -21,7 +22,19 @@ export class Game {
                     errorText: ""
                 },
                 id: 0,
-            }
+            };
+        } catch (e) {
+            return {
+                type: "reg",
+                data: {
+                    name: "",
+                    index: "",
+                    error: true,
+                    errorText: e instanceof Error ? e.message : "Auth error"
+                },
+                id: 0,
+            };
+        }
     }
 
     onPlayerEvent(cb: PlayerEventCallback): void {
