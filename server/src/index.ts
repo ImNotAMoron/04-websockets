@@ -1,7 +1,11 @@
-import { WebSocketServer } from 'ws';
+import {QuizServer} from "./modules/server/server";
+import {Game} from "./modules/game/game";
 
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
 
 // WebSocket server
-const wss = new WebSocketServer({ port: PORT });
+
+const game = new Game();
+
+void new QuizServer(PORT, game);
