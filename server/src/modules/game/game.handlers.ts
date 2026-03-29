@@ -58,7 +58,6 @@ export class GameHandlers {
         this.addHandler("create_game", (event, playerId) => {
 
             const host = context.playersManager.getPlayer(playerId);
-            console.log(host?.name, "is creating game")
 
             if (!host) throw "Player not found";
             const questions = event.data.questions;
@@ -78,11 +77,9 @@ export class GameHandlers {
         this.addHandler("join_game", (event, playerId) => {
             const player = context.playersManager.getPlayer(playerId);
 
-            console.log(player?.name, "is joining game")
 
             const code = this.context.idByCode.get(event.data.code) ?? "";
             const room = this.context.rooms.get(code);
-            console.log(JSON.stringify(room, null, 2));
             if (!room) throw "Room not found"
             const host = context.playersManager.getPlayer(room.hostId);
             if (!player) throw "Player not found";
@@ -123,7 +120,6 @@ export class GameHandlers {
         });
 
         this.addHandler("start_game", (event, playerId) => {
-            console.log("starting game")
             const room = this.context.rooms.get(event.data.gameId);
             if (!room) throw "Room not found";
             const host = this.context.playersManager.getPlayer(room.hostId)!;
@@ -160,9 +156,7 @@ export class GameHandlers {
 
         })
         this.addHandler("answer", (event, playerId) => {
-            console.log(event.data.gameId)
             const room = this.context.rooms.get(event.data.gameId);
-            console.log("Answering...", "Game id:", event.data.gameId);
             if (!room) throw "Room not found";
             room.answer(playerId, event.data.answerIndex);
             this.broadcastRoomEvent({
@@ -173,7 +167,6 @@ export class GameHandlers {
                 "id": 0
             }, room)
         })
-        // TODO: FIX PASSWORD SYSTEM
     }
 
     addHandler<T extends PlayerEventTypes>(type

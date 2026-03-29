@@ -16,7 +16,6 @@ export class QuizServer {
                 const json = JSON.parse(msg.toString());
                 if(!validatePlayerEvent(json)) {
                     return;
-                    // TODO: Say something to player if it happens
                 }
                 if(json.type === "reg") {
                     const event = this.game.registerPlayer(json.data.name, json.data.password);

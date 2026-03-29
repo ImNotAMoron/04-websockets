@@ -39,13 +39,11 @@ export class Room {
     }
 
     answer(id: string, index: number) {
-        console.log(id, "answered")
         this.playerAnswers.set(id, {
             answerIndex: index,
             timestamp: Date.now()
         });
         this.currentAnswerCount++;
-        console.log(`${this.currentAnswerCount} / ${this.players.length}`)
         if(this.currentAnswerCount >= this.players.length && this.questionTimer !== undefined) {
             this.finishQuestion();
         }
