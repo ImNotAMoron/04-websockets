@@ -1,7 +1,6 @@
 import {WebSocketServer, WebSocket} from "ws";
 import {Game} from "../game/game";
-import {validateEvent} from "../event/events.validators";
-import {validatePlayerEventReg} from "../event/client.events.types";
+import {validatePlayerEvent} from "../event/events.validators";
 
 export class QuizServer {
     game: Game;
@@ -15,17 +14,28 @@ export class QuizServer {
             let playerId: string | undefined = undefined;
             ws.on("message", (msg) => {
                 const json = JSON.parse(msg.toString());
-                if(validatePlayerEventReg(json)) {
-                    const player = this.game.registerPlayer(json.data.name, json.data.password);
-                    this.players.set(player.id, ws);
-                    playerId = player.id;
+                if(!validatePlayerEvent(json)) {
+                    return;
+                    // TODO: Say something to player if it happens
                 }
-                else if(validateEvent(json) && playerId) {
+                if(json.type === "reg") {
+                    const event = this.game.registerPlayer(json.data.name, json.data.password);
+                    if(!event.data.error) {
+                        this.players.set(event.data.index, ws);
+                        playerId = event.data.index;
+                        ws.send(JSON.stringify(event));
+                    }
+                    else {
+
+                    }
+                }
+                else if(playerId !== undefined) {
                     this.game.handle(playerId, json);
                 }
             })
         })
         this.game.onPlayerEvent(((player, event) => {
+            console.log(player.id, event.type)
             const playerWs = this.players.get(player.id);
             if(!playerWs) return;
             playerWs.send(JSON.stringify(event));

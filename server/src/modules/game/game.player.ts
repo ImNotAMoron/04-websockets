@@ -1,7 +1,7 @@
 export class GamePlayer {
     name: string;
     id: string;
-
+    score: number = 0;
     constructor(name: string) {
         this.name = name;
         this.id = crypto.randomUUID();

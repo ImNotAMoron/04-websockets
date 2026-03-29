@@ -1,6 +1,6 @@
-import {GameEvent} from "./events.types";
+import {PlayerEvent} from "./events.player.types";
 
-export function validateEvent(obj: unknown): obj is GameEvent<string, any> {
+export function validatePlayerEvent(obj: unknown): obj is PlayerEvent {
     return obj !== null && obj !== undefined && typeof obj === "object"
         && "type" in obj && typeof obj["type"] === "string"
         && "id" in obj && typeof obj["id"] === "number"
